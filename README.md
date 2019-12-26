@@ -3,6 +3,12 @@ Blender addon to convert a Blender scene into a Helios scene (LiDAR simulation, 
 Semantic classification is also supported and can be combined easily by using collections in Blender.  
 by Michael Neumann
 
+*Blender:* https://www.blender.org/
+
+*Helios:* https://github.com/GIScience/helios
+
+*3DTK - The 3D Toolkit:* http://threedtk.de
+
 ## Documentation
 Documentation can be found on the Wiki pages: https://github.com/neumicha/Blender2Helios/wiki
 
