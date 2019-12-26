@@ -27,8 +27,8 @@ bl_info = {
     "blender": (2, 80, 0),
     "category": "Scene",
     "location": "Render > Run Blender2Helios Export",
-    "wiki_url": "https://github.com/neumicha/Blender2Helios/wiki", # TODO
-    "tracker_url": "https://github.com/neumicha/Blender2Helios/issues", # TODO
+    "wiki_url": "https://github.com/neumicha/Blender2Helios/wiki",
+    "tracker_url": "https://github.com/neumicha/Blender2Helios/issues",
     "description": "Exports Blender scene as Helios XML scene"
 }
 
@@ -136,9 +136,6 @@ class Blender2HeliosHelper():
         self.useMaterials = useMaterials
         self.useOwnMaterials = useOwnMaterials
         self.scannerLocation = scannerLocation
-            
-    # TODO keep all the variables in instance of this class
-    # TODO change functions with parameters to def func(self)
     
     def deleteCachedScene(self):
         sceneFile = self.heliosDir + 'data/scenes/' + self.sceneName + '.scene'
