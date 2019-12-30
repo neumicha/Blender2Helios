@@ -107,14 +107,14 @@ def menu_func_blender2helios_export(self, context):
 
 def register():
     bpy.utils.register_class(Blender2Helios)
-    bpy.utils.register_class(Blender2HeliosPanel)
+    #bpy.utils.register_class(Blender2HeliosPanel)
     bpy.utils.register_class(Blender2HeliosPreferences)
     bpy.types.TOPBAR_MT_render.append(menu_func_blender2helios_export)
     
 def unregister():
     bpy.types.TOPBAR_MT_render.remove(menu_func_blender2helios_export)
     bpy.utils.unregister_class(Blender2HeliosPreferences)
-    bpy.utils.unregister_class(Blender2HeliosPanel)
+    #bpy.utils.unregister_class(Blender2HeliosPanel)
     bpy.utils.unregister_class(Blender2Helios)
 
 
