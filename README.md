@@ -22,9 +22,15 @@ Conversion of a Blender parking lot scene (left) to a point cloud using two lase
 
 ## How to Cite
 As long as there is no publication, please cite https://github.com/neumicha/Blender2Helios when you use Blender2Helios in your work.
+
 @misc{Blender2Helios,
+
   title = {{Blender2Helios} - Github Repository},
+  
   author = {Michael Neumann},
+  
   howpublished = {\url{https://github.com/neumicha/Blender2Helios}},
+  
   year = {Accessed: 2010-09-30}
+  
 }
