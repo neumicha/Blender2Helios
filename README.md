@@ -31,6 +31,6 @@ As long as there is no publication, please cite https://github.com/neumicha/Blen
   
   howpublished = {\url{https://github.com/neumicha/Blender2Helios}},
   
-  year = {Accessed: 2010-09-30}
+  year = {2020}
   
 }
