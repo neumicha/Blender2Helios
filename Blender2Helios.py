@@ -36,7 +36,7 @@ bl_info = {
 class Blender2HeliosPreferences(AddonPreferences):
     bl_idname = __name__
     
-    pref_heliosBaseDir: StringProperty(name="Helios Base Directory", description="Directory containing 'assets' and 'data' directories", subtype='DIR_PATH', default=expanduser("~")+"/")
+    pref_heliosBaseDir: StringProperty(name="Helios Base Directory", description="Directory containing 'assets' and 'data' directories", subtype='DIR_PATH', default=os.getcwd()+os.sep)
     pref_sceneName: StringProperty(name="Scene Name (Helios)", description="Later name of the Helios scene (also used as filename)", default="blender2heliosScene")
     pref_alsoWriteSurveyFile: BoolProperty(name="Also write Helios survey file (3D Cursor is used for positioning the scanner)", description="Not only scene XML is generated but also the survey XML (defines the laser scanner position etc.)", default=True)
     pref_alwaysOverrideModels: BoolProperty(name="Always Override Models (SLOW!)", description="If enabled, exported objects with same names are not cached and always overriden. This decreses export speed significantly!", default=True)
@@ -187,7 +187,8 @@ class Blender2HeliosHelper():
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False) # Change to object mode
         
         # Scene
-        fScene = open(self.heliosDir + "data/scenes/" + self.sceneName + ".xml","w+")
+        #fScene = open(self.heliosDir + "data/scenes/" + self.sceneName + ".xml","w+")
+        fScene = open(os.path.join(self.heliosDir, "data", "scenes", self.sceneName+".xml"),"w+")
         fScene.write(self.xmlSceneHead())
         fScene.write(self.buildSceneParts())
         fScene.write(self.xmlSceneFoot())
@@ -195,7 +196,7 @@ class Blender2HeliosHelper():
         
         # Survey
         if (self.alsoWriteSurveyFile):
-            fSurvey = open(self.heliosDir + "data/surveys/" + self.sceneName + ".xml","w+")
+            fSurvey = open(os.path.join(self.heliosDir, "data" , "surveys", self.sceneName+".xml"),"w+")
             fSurvey.write(self.xmlSurvey())
             fSurvey.close()
 
