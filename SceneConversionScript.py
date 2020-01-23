@@ -23,7 +23,7 @@ import fnmatch
 
 ### CONFIG ###
 # Blender collection where your unclassified objects are stored/linked
-originCollection = "Rest"
+originCollection = "Collection"
 
 # Rules where to put the objects
 # Order of the rules DOES matter
@@ -33,6 +33,7 @@ originCollection = "Rest"
 # dict["targetColl"] = [ "objPattern1", "objPattern2" ]
 # will move all objects with names where objPattern1 or objPattern2 occurs (case insensitive) to collection "targetColl"
 dict = {}
+dict["UCX"] = ["UCX"]
 dict["Benches"] = ["Bench"]
 dict["VegetationLow"] = ["Bamboo", "Juniper", "Hedge"]
 dict["VegetationHigh"] = ["Birch", "Beech", "Acia", "Elm", "Maple", "Oak", "Fir"]
