@@ -7,7 +7,7 @@
 # Can be used to convert a Blender scene into a Helios scene.
 # See https://github.com/neumicha/Blender2Helios/wiki for instructions
 # When used in your work, please cite https://github.com/neumicha/Blender2Helios
-# Helios LiDAR simulator: https://github.com/GIScience/helios
+# Helios LiDAR simulator: https://github.com/3dgeo-heidelberg/helios
 # 3D-Toolkit for viewing pointclouds, learn classifiers, ...: http://threedtk.de
 # Special thanks to my supervisor Prof. Dr. Andreas Nüchter (University Würzburg)
 #####
@@ -23,7 +23,7 @@ import math
 bl_info = {
     "name": "Blender2Helios",
     "author": "Michael Neumann",
-    "version": (0, 0, 1),
+    "version": (0, 0, 2),
     "blender": (2, 80, 0),
     "category": "Scene",
     "location": "Render > Run Blender2Helios Export",
@@ -129,6 +129,8 @@ class Blender2HeliosHelper():
     """Helper functions for Blender2Helios"""
         
     def __init__(self, heliosDir, sceneName, alsoWriteSurveyFile, alwaysOverrideModels, useMaterials, useOwnMaterials, scannerLocation):
+        if not heliosDir.endswith("\\") or heliosDir.endswith("/"):
+            heliosDir = heliosDir + "\\"
         self.heliosDir = heliosDir
         self.sceneName = sceneName
         self.alsoWriteSurveyFile = alsoWriteSurveyFile
@@ -207,9 +209,6 @@ class Blender2HeliosHelper():
         return """<?xml version="1.0" encoding="UTF-8"?>
     <document>
         <scene id=\"""" + self.sceneName + """" name=\"""" + self.sceneName + """">
-            <sunDir x="0" y="1" z="-1" />
-            <skybox azimuth_deg="275" texturesFolder=\"""" + self.heliosDir + """assets/textures/sky/sky6_1024" />
-        <skybox azimuth_deg="275" texturesFolder=\"""" + self.heliosDir + """assets/textures/sky/sky6_1024" />
     """
     # returns xml code for survey (my be changed later for more scans etc.)
     def xmlSurvey(self):
@@ -220,7 +219,7 @@ class Blender2HeliosHelper():
         <survey defaultScannerSettings="profile1" name=\"""" + self.sceneName + """" scene=\"""" + self.heliosDir + """data/scenes/""" + self.sceneName + """.xml#""" + self.sceneName + """" platform=\"""" + self.heliosDir + """data/platforms.xml#tripod" scanner=\"""" + self.heliosDir + """data/scanners_tls.xml#riegl_vz400">
             <leg>
                 <platformSettings x=\"""" + str(self.scannerLocation[0]) + """" y=\"""" + str(self.scannerLocation[1]) + """" z=\"""" + str(self.scannerLocation[2]) + """" onGround="true" />
-                <scannerSettings active="true" pulseFreq_hz="100000" scanAngle_deg="50.0" scanFreq_hz="120" headRotatePerSec_deg="10.0" headRotateStart_deg="0" headRotateStop_deg="360" />
+                <scannerSettings template="profile1" headRotateStart_deg="0" headRotateStop_deg="360" />
             </leg>
         </survey>
     </document>
@@ -231,15 +230,12 @@ class Blender2HeliosHelper():
         return """        <part>
                 <filter type="objloader">
                     <param type="string" key="filepath" value=\"""" + self.heliosDir + """data/sceneparts/""" + collection + '/' + objectFile + """" />
-                    <param type="boolean" key="castShadows" value="true" />
-                    <param type="boolean" key="receiveShadows" value="true" />
-                    <param type="boolean" key="recomputeVertexNormals" value="true" />
                 </filter>
                 <filter type="rotate">
                     <param type="rotation" key="rotation">
-                        <rot axis="pitch" angle_deg=\"""" + str(rotation[0]) + """" />
-                        <rot axis="roll" angle_deg=\"""" + str(rotation[1]) + """"  />
-                        <rot axis="yaw" angle_deg=\"""" + str(rotation[2]) + """"  />
+                        <rot axis="x" angle_deg=\"""" + str(rotation[0]) + """" />
+                        <rot axis="y" angle_deg=\"""" + str(rotation[1]) + """"  />
+                        <rot axis="z" angle_deg=\"""" + str(rotation[2]) + """"  />
                     </param>
                 </filter>
                 <filter type="translate">
