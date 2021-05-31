@@ -150,6 +150,15 @@ class Blender2HeliosHelper():
         else:
             return string[0:string.find(delim)]
 
+    def create_collection(self, collection_name):
+        # Add or find collection
+        collection = bpy.data.collections.get(collection_name)
+        if collection is None:
+            collection = bpy.data.collections.new(collection_name)
+            bpy.context.scene.collection.children.link(collection)
+        return collection
+
+
     def buildSceneParts(self):
         out=""
         for c in bpy.data.collections:
@@ -267,6 +276,17 @@ class Blender2HeliosHelper():
     def selectOneObject(self, object):
         bpy.ops.object.select_all(action='DESELECT')
         object.select_set(True)
+        bpy.context.view_layer.objects.active = object # Also make it active. May be needed later
+
+    def selectOneObject(self, object):
+        bpy.ops.object.select_all(action='DESELECT')
+        try:
+            object.select_set(True)
+        except:
+            # Link object to ignore collection if not in view layer
+            ignore_coll = self.create_collection("Ignore")
+            ignore_coll.objects.link(object)
+            object.select_set(True)
         bpy.context.view_layer.objects.active = object # Also make it active. May be needed later
 
     # Quaternion (w,x,y,z) to Tiat Bryan (r,p,y); Output in degrees
