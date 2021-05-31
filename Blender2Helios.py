@@ -14,11 +14,13 @@
 
 
 import bpy
+from bpy import context
 from bpy.types import Operator, AddonPreferences, Panel
 from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
 import os
 from os.path import expanduser
 import math
+import numpy as np
 
 bl_info = {
     "name": "Blender2Helios",
@@ -160,46 +162,113 @@ class Blender2HeliosHelper():
             bpy.context.scene.collection.children.link(collection)
         return collection
 
-
     def buildSceneParts(self):
         out=""
+        inst_coll_dict,instance_obj_names, degp = self.createInstanceDict()
+        print("Found following particles")
+        print(instance_obj_names)
         for c in bpy.data.collections:
-            if (c.name != 'Ignore'):
-                collection_name = self.cutString(c.name,'.')
-                for o in c.all_objects:
-                    object_name = self.cutString(o.name,'.')
-                    print('-')
-                    print('Found object:', collection_name, '/', object_name)
-                    objFileSizeExtension = self.dim2Text(self.dimScale2Original(o.dimensions, o.scale))
-                    collectionDir = self.heliosDir + 'data/sceneparts/' + collection_name
-                    if (not os.path.exists(collectionDir)):
-                        os.mkdir(collectionDir)
-                    objFile = collectionDir + '/' + object_name + '-' + objFileSizeExtension + '.obj'
-                    scale = o.scale[0]
-                    o.rotation_mode = 'QUATERNION' # Otherwise we only get zeros later
-                    # export .obj file if needed
-                    if (not os.path.exists(objFile) or self.alwaysOverrideModels):
-                        print('We have to export the file... ' + collection_name + '/' + object_name + '-' + objFileSizeExtension + '.obj')
-                        # Maybe we have to rescale the object before exporting (Always bring X to 1)
-                        backupTranslation = o.location.copy()
-                        backupRotation = o.rotation_quaternion.copy()
-                        o.location.zero()
-                        o.rotation_quaternion.identity()
-                        o.scale /= scale
-                        self.selectOneObject(o)
-                        self.exportSelectedObject(objFile)
-                        o.scale *= scale
-                        o.location = backupTranslation
-                        o.rotation_quaternion = backupRotation
-                        if (self.useOwnMaterials):
-                            self.prependMaterial2File(collection_name, objFile)
-                        out += self.object2XML(collection_name, object_name + '-' + objFileSizeExtension + '.obj', o.location, self.quaternion2RPY(o.rotation_quaternion), scale)
+            for o in c.all_objects:
+                if (c.name != 'Ignore' or o.name in instance_obj_names):
+                    if o.name in instance_obj_names:
+                        collection_name = inst_coll_dict[o.name][0]
+                    else:
+                        collection_name = self.cutString(c.name,'.')
+                    try:
+                        object_name = self.cutString(o.name,'.')
+                        if not self.hasParticleModifiers(o):
+                            print('-')
+                            print('Found object:', collection_name, '/', object_name)
+                            out += self.exportObject(c, o, collection_name, object_name)
+                        else:
+                            print('-')
+                            print('Found Particle System:', collection_name, '/', object_name)
+                            out += self.exportParticleInstances(degp, o, collection_name)
+                    except Exception as e:
+                        print(e)
+        self.hideInstancedObject(instance_obj_names)
         return out
+
+    def exportObject(self, c, o, collection_name, object_name):
+        out = ""
+        objFileSizeExtension = self.dim2Text(self.dimScale2Original(o.dimensions, o.scale))
+        collectionDir = self.heliosDir + 'data/sceneparts/' + collection_name
+        if (not os.path.exists(collectionDir)):
+            os.mkdir(collectionDir)
+        objFile = collectionDir + '/' + object_name + '-' + objFileSizeExtension + '.obj'
+        scale = o.scale[0]
+        o.rotation_mode = 'QUATERNION' # Otherwise we only get zeros later,                            
+        # export .obj file if needed
+        if (not os.path.exists(objFile) or self.alwaysOverrideModels):
+            print('We have to export the file... ' + collection_name + '/' + object_name + '-' + objFileSizeExtension + '.obj')
+            self.exportObjectAsOBJ(collection_name, o, objFile, scale)
+        if (c.name != 'Ignore'): # Only add to xml if not an instanced obj
+            out = self.object2XML(collection_name, object_name + '-' + objFileSizeExtension + '.obj', o.location, self.quaternion2RPY(o.rotation_quaternion), scale)
+        return out
+
+    def exportParticleInstances(self, degp, o, collection_name):
+        obj_evaluated = o.evaluated_get(degp)
+        out = ""
+        for object_instance in degp.object_instances:
+            if object_instance.is_instance and object_instance.parent == obj_evaluated:
+                obj = object_instance.object
+                obj_inst = object_instance.instance_object
+                object_name = self.cutString(obj.name,'.')
+                objFileSizeExtension = self.dim2Text(self.dimScale2Original(obj_inst.dimensions, obj.scale))
+                location = object_instance.matrix_world.to_translation()
+                rotation = self.quaternion2RPY(object_instance.matrix_world.to_quaternion())
+                size = object_instance.matrix_world.to_scale()[0]
+                out += self.object2XML(collection_name, object_name + '-' + objFileSizeExtension + '.obj', location, rotation, size)
+        return out
+
+    def hideInstancedObject(self, instance_obj_names):
+        for inst_obj in instance_obj_names:
+            try:
+                bpy.data.objects[inst_obj].hide_set(True)
+            except:
+                pass
+
+    def createInstanceDict(self):
+        inst_coll_dict = {}
+        degp = bpy.context.evaluated_depsgraph_get()
+        for i, object_instance in enumerate(degp.object_instances):
+            if object_instance.is_instance:
+                object_name = object_instance.object.name
+                parent_name = object_instance.parent.name
+                collection_name = bpy.data.objects[parent_name].users_collection[0].name
+                bpy.data.objects[object_name].hide_set(False)
+                if object_name not in inst_coll_dict:
+                    inst_coll_dict[object_name] = [collection_name]
+                else:
+                    if collection_name not in inst_coll_dict[object_name]:
+                        inst_coll_dict[object_name].append(collection_name)
+        return inst_coll_dict, list(inst_coll_dict), degp
+
+    def hasParticleModifiers(self,obj):
+        mod_list = []
+        for mod in obj.modifiers:
+            mod_list.append(mod.type)
+        return any(instance_mod in mod_list for instance_mod in ['PARTICLE_SYSTEM','NODES'])
+
+    def exportObjectAsOBJ(self, collection_name, obj, objFile, scale):
+        # Maybe we have to rescale the object before exporting (Always bring X to 1)
+        backupTranslation = obj.location.copy()
+        backupRotation = obj.rotation_quaternion.copy()
+        obj.location.zero()
+        obj.rotation_quaternion.identity()
+        obj.scale /= scale
+        self.selectOneObject(obj)
+        self.exportSelectedObject(objFile)
+        obj.scale *= scale
+        obj.location = backupTranslation
+        obj.rotation_quaternion = backupRotation
+        if (self.useOwnMaterials):
+            self.prependMaterial2File(collection_name, objFile)
 
     def export2Helios(self):
         if (bpy.context.mode != 'OBJECT'):
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False) # Change to object mode
-        
+                    
         # Scene
         #fScene = open(self.heliosDir + "data/scenes/" + self.sceneName + ".xml","w+")
         fScene = open(os.path.join(self.heliosDir, "data", "scenes", self.sceneName+".xml"),"w+")
@@ -311,4 +380,3 @@ class Blender2HeliosHelper():
         src=open(fileName,"w")
         src.writelines(xml)
         src.close()
-        
