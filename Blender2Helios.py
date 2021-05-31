@@ -145,10 +145,12 @@ class Blender2HeliosHelper():
             os.remove(sceneFile)
             
     def cutString(self, string,delim):
-        if (string.find(delim)==-1):
-            return string
+        split_string = string.split(delim)
+        if split_string[0] == "":
+            print("Dot is first in name")
+            return split_string[1]
         else:
-            return string[0:string.find(delim)]
+            return split_string[0]
 
     def create_collection(self, collection_name):
         # Add or find collection
