@@ -149,7 +149,7 @@ class Blender2HeliosHelper():
             return string
         else:
             return string[0:string.find(delim)]
-        
+
     def buildSceneParts(self):
         out=""
         for c in bpy.data.collections:
@@ -182,7 +182,7 @@ class Blender2HeliosHelper():
                         o.rotation_quaternion = backupRotation
                         if (self.useOwnMaterials):
                             self.prependMaterial2File(collection_name, objFile)
-                    out += self.object2XML(collection_name, object_name + '-' + objFileSizeExtension + '.obj', o.location, self.quaternion2RPY(o.rotation_quaternion), scale)
+                        out += self.object2XML(collection_name, object_name + '-' + objFileSizeExtension + '.obj', o.location, self.quaternion2RPY(o.rotation_quaternion), scale)
         return out
 
     def export2Helios(self):
@@ -272,7 +272,7 @@ class Blender2HeliosHelper():
     # Quaternion (w,x,y,z) to Tiat Bryan (r,p,y); Output in degrees
     def quaternion2RPY(self, q):
         r = 180/math.pi*math.atan2(2*(q[0]*q[1]+q[2]*q[3]), 1-2*(math.pow(q[1],2)+math.pow(q[2],2)))
-        p = 180/math.pi*math.asin(2*(q[0]*q[2]-q[3]*q[1]))
+        p = 180/math.pi*math.asin(round(2*(q[0]*q[2]-q[3]*q[1]),4)) # Round fixes issues of numbers > 1
         y = 180/math.pi*math.atan2(2*(q[0]*q[3]+q[1]*q[2]), 1-2*(math.pow(q[2],2)+math.pow(q[3],2)))
         return(r,p,y)
 
