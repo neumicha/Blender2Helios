@@ -195,7 +195,8 @@ class Blender2HeliosHelper():
         return out
 
     def export2Helios(self):
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False) # Change to object mode
+        if (bpy.context.mode != 'OBJECT'):
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False) # Change to object mode
         
         # Scene
         #fScene = open(self.heliosDir + "data/scenes/" + self.sceneName + ".xml","w+")
