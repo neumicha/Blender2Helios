@@ -179,7 +179,7 @@ class Blender2HeliosHelper():
                         if not self.hasParticleModifiers(o):
                             print('-')
                             print('Found object:', collection_name, '/', object_name)
-                            out += self.exportObject(c, o, collection_name, object_name)
+                            out += self.exportObject(c, o, collection_name, object_name,instance_obj_names)
                         else:
                             print('-')
                             print('Found Particle System:', collection_name, '/', object_name)
@@ -189,7 +189,7 @@ class Blender2HeliosHelper():
         self.hideInstancedObject(instance_obj_names)
         return out
 
-    def exportObject(self, c, o, collection_name, object_name):
+    def exportObject(self, c, o, collection_name, object_name,instance_obj_names):
         out = ""
         objFileSizeExtension = self.dim2Text(self.dimScale2Original(o.dimensions, o.scale))
         collectionDir = self.heliosDir + 'data/sceneparts/' + collection_name
@@ -202,7 +202,7 @@ class Blender2HeliosHelper():
         if (not os.path.exists(objFile) or self.alwaysOverrideModels):
             print('We have to export the file... ' + collection_name + '/' + object_name + '-' + objFileSizeExtension + '.obj')
             self.exportObjectAsOBJ(collection_name, o, objFile, scale)
-        if (c.name != 'Ignore'): # Only add to xml if not an instanced obj
+        if (c.name != 'Ignore' and object_name not in instance_obj_names): # Only add to xml if not an instanced obj
             out = self.object2XML(collection_name, object_name + '-' + objFileSizeExtension + '.obj', o.location, self.quaternion2RPY(o.rotation_quaternion), scale)
         return out
 
