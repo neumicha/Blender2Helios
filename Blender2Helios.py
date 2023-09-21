@@ -129,7 +129,7 @@ class Blender2HeliosHelper():
     """Helper functions for Blender2Helios"""
         
     def __init__(self, heliosDir, sceneName, alsoWriteSurveyFile, alwaysOverrideModels, useMaterials, useOwnMaterials, scannerLocation):
-        if not heliosDir.endswith("\\") or heliosDir.endswith("/"):
+        if not (heliosDir.endswith("\\") or heliosDir.endswith("/")):
             heliosDir = heliosDir + "\\"
         self.heliosDir = heliosDir
         self.sceneName = sceneName
@@ -160,9 +160,8 @@ class Blender2HeliosHelper():
                     print('-')
                     print('Found object:', collection_name, '/', object_name)
                     objFileSizeExtension = self.dim2Text(self.dimScale2Original(o.dimensions, o.scale))
-                    collectionDir = self.heliosDir + 'data/sceneparts/' + collection_name
-                    if (not os.path.exists(collectionDir)):
-                        os.mkdir(collectionDir)
+                    collectionDir = self.checkDirExists(self.heliosDir + 'data/sceneparts/' + collection_name, path_is_file=False)
+
                     objFile = collectionDir + '/' + object_name + '-' + objFileSizeExtension + '.obj'
                     scale = o.scale[0]
                     o.rotation_mode = 'QUATERNION' # Otherwise we only get zeros later
@@ -190,7 +189,7 @@ class Blender2HeliosHelper():
         
         # Scene
         #fScene = open(self.heliosDir + "data/scenes/" + self.sceneName + ".xml","w+")
-        fScene = open(os.path.join(self.heliosDir, "data", "scenes", self.sceneName+".xml"),"w+")
+        fScene = open(self.checkDirExists(os.path.join(self.heliosDir, "data", "scenes", self.sceneName+".xml")),"w+")
         fScene.write(self.xmlSceneHead())
         fScene.write(self.buildSceneParts())
         fScene.write(self.xmlSceneFoot())
@@ -198,7 +197,7 @@ class Blender2HeliosHelper():
         
         # Survey
         if (self.alsoWriteSurveyFile):
-            fSurvey = open(os.path.join(self.heliosDir, "data" , "surveys", self.sceneName+".xml"),"w+")
+            fSurvey = open(self.checkDirExists(os.path.join(self.heliosDir, "data" , "surveys", self.sceneName+".xml")),"w+")
             fSurvey.write(self.xmlSurvey())
             fSurvey.close()
 
@@ -262,7 +261,7 @@ class Blender2HeliosHelper():
 
     def exportSelectedObject(self, file):
         export_materials = self.useMaterials and not self.useOwnMaterials
-        bpy.ops.export_scene.obj(filepath=file, check_existing=False, use_mesh_modifiers=True, use_selection=True, use_normals=False, use_materials=export_materials, use_uvs=False, axis_forward='Y', axis_up='Z')
+        bpy.ops.export_scene.obj(filepath=self.checkDirExists(file), check_existing=False, use_mesh_modifiers=True, use_selection=True, use_normals=False, use_materials=export_materials, use_uvs=False, axis_forward='Y', axis_up='Z')
 
     def selectOneObject(self, object):
         bpy.ops.object.select_all(action='DESELECT')
@@ -278,7 +277,7 @@ class Blender2HeliosHelper():
 
     def prependMaterial2File(self, materialName, fileName):
         #We read the existing text from file in READ mode
-        src=open(fileName,"r")
+        src=open(self.checkDirExists(fileName),"r")
         prepend="mtllib ../materials.mtl\nusemtl " + materialName + "\n"    #Prepending string
         xml=src.readlines()
         #Here, we prepend the string we want to on first line
@@ -288,4 +287,27 @@ class Blender2HeliosHelper():
         src=open(fileName,"w")
         src.writelines(xml)
         src.close()
+
+    def checkDirExists(self, path, path_is_file=True):
+        # borrowed from: https://stackoverflow.com/questions/3812849/how-to-check-whether-a-directory-is-a-sub-directory-of-another-directory
+        def path_is_parent(parent_path, child_path):
+            # Smooth out relative path names, note: if you are concerned about symbolic links, you should use os.path.realpath too
+            parent_path = os.path.abspath(parent_path)
+            child_path = os.path.abspath(child_path)
+
+            # Compare the common path of the parent and child path with the common path of just the parent path. Using the commonpath method on just the parent path will regularise the path name in the same way as the comparison that deals with both paths, removing any trailing path separator
+            return os.path.commonpath([parent_path]) == os.path.commonpath([parent_path, child_path])
+
+        if os.path.exists(self.heliosDir) and path_is_parent(self.heliosDir, path):
+            if path_is_file:
+                directory = os.path.split(path)[0]
+            else:
+                directory = path
+
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+        else:
+            print("WARNING: checkDirExists called with path NOT in", self.heliosDir, " - ", path)
+        
+        return path
         
