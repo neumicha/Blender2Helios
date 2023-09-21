@@ -129,7 +129,7 @@ class Blender2HeliosHelper():
     """Helper functions for Blender2Helios"""
         
     def __init__(self, heliosDir, sceneName, alsoWriteSurveyFile, alwaysOverrideModels, useMaterials, useOwnMaterials, scannerLocation):
-        if not heliosDir.endswith("\\") or heliosDir.endswith("/"):
+        if not (heliosDir.endswith("\\") or heliosDir.endswith("/")):
             heliosDir = heliosDir + "\\"
         self.heliosDir = heliosDir
         self.sceneName = sceneName
