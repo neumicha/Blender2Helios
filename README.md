@@ -1,5 +1,5 @@
 # Blender2Helios
-Blender addon to convert a Blender scenes to Helios scenes (Heidelberg LiDAR Simulator, 3D point clouds).  
+Blender addon to convert a Blender scenes to Helios / Helios++ scenes (Heidelberg LiDAR Simulator, 3D point clouds).  
 Semantic labels are also supported and can be combined easily by using collections in Blender.  
 by Michael Neumann
 
