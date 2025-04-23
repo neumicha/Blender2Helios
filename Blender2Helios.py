@@ -215,7 +215,7 @@ class Blender2HeliosHelper():
     <document>
         <!-- Default scanner settings: -->
         <scannerSettings id="profile1" active="true" pulseFreq_hz="100000" scanAngle_deg="50.0" scanFreq_hz="120" headRotatePerSec_deg="10.0" headRotateStart_deg="0.0" headRotateStop_deg="0.0" />
-        <survey defaultScannerSettings="profile1" name=\"""" + self.sceneName + """" scene=\"""" + self.heliosDir + """data/scenes/""" + self.sceneName + """.xml#""" + self.sceneName + """" platform=\"""" + self.heliosDir + """data/platforms.xml#tripod" scanner=\"""" + self.heliosDir + """data/scanners_tls.xml#riegl_vz400">
+        <survey defaultScannerSettings="profile1" name=\"""" + self.sceneName + """" scene=\"""" + self.heliosDir + """data/scenes/""" + self.sceneName + """.xml#""" + self.sceneName + """" platform=\"""" + """data/platforms.xml#tripod" scanner=\"""" + """data/scanners_tls.xml#riegl_vz400">
             <leg>
                 <platformSettings x=\"""" + str(self.scannerLocation[0]) + """" y=\"""" + str(self.scannerLocation[1]) + """" z=\"""" + str(self.scannerLocation[2]) + """" onGround="true" />
                 <scannerSettings template="profile1" headRotateStart_deg="0" headRotateStop_deg="360" />
@@ -260,8 +260,13 @@ class Blender2HeliosHelper():
         return str(int(dimensions[0]*100)) + '-' + str(int(dimensions[1]*100)) + '-' + str(int(dimensions[2]*100))
 
     def exportSelectedObject(self, file):
-        export_materials = self.useMaterials and not self.useOwnMaterials
-        bpy.ops.export_scene.obj(filepath=self.checkDirExists(file), check_existing=False, use_mesh_modifiers=True, use_selection=True, use_normals=False, use_materials=export_materials, use_uvs=False, axis_forward='Y', axis_up='Z')
+        export_materials_opt = self.useMaterials and not self.useOwnMaterials
+        if bpy.app.version[0] >= 4:
+            bpy.ops.wm.obj_export(filepath=self.checkDirExists(file), check_existing=False, apply_modifiers=True,
+                                export_selected_objects=True, export_normals=False, export_materials=export_materials_opt,
+                                export_uv=False, forward_axis='Y', up_axis='Z')
+        else:
+            bpy.ops.export_scene.obj(filepath=self.checkDirExists(file), check_existing=False, use_mesh_modifiers=True, use_selection=True, use_normals=False, use_materials=export_materials_opt, use_uvs=False, axis_forward='Y', axis_up='Z')
 
     def selectOneObject(self, object):
         bpy.ops.object.select_all(action='DESELECT')
